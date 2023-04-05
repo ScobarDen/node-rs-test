@@ -1,35 +1,32 @@
-const yargs = require("yargs/yargs");
-const { hideBin } = require("yargs/helpers");
-const pkg = require("./package.json");
-const { addNote, printNotes, removeNoteById } = require("./notes.controller");
+const http = require("http");
+const express = require("express");
+const chalk = require("chalk");
+const path = require("path");
+const fs = require("fs/promises");
+const { addNote } = require("./notes.controller");
 
-yargs(hideBin(process.argv))
-  .command(
-    "add",
-    "Print all notes",
-    {
-      title: {
-        type: "string",
-        describe: "Note title",
-        demandOption: true,
-      },
-    },
-    ({ title }) => {
-      addNote(title);
-    }
-  )
-  .command("list", "Add new note to list", {}, () => {
-    printNotes();
+const port = 3000;
+
+const basePath = path.join(__dirname, "pages");
+
+const app = express();
+
+app.use(
+  express.urlencoded({
+    extended: true,
   })
-  .command(
-    "remove",
-    "Remove note by id",
-    {
-      id: { type: "string", describe: "Note id", demandOption: true },
-    },
-    ({ id }) => {
-      removeNoteById(id);
-    }
-  )
-  .version(pkg.version)
-  .parse();
+);
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(basePath, "index.html"));
+});
+
+app.post("/", async (req, res) => {
+  console.log(req.body);
+  await addNote(req.body.title);
+  res.sendFile(path.join(basePath, "index.html"));
+});
+
+app.listen(port, () => {
+  console.log(chalk.green(`Server listening on port ${port}...`));
+});
