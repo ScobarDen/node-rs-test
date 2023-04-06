@@ -6,20 +6,27 @@ const notesPath = path.join(__dirname, "db.json");
 
 async function addNote(title) {
   const notes = await getNotes();
-
   const note = {
     title,
     id: Date.now().toString(),
   };
+
   notes.push(note);
-  await fs.writeFile(notesPath, JSON.stringify(notes));
-  console.log(chalk.bgGreen.bold("Note was added"));
+
+  await saveNotes(notes);
+  console.log(chalk.bgGreen("Note was added!"));
 }
 
-async function printNotes() {
+async function editNote(id, title) {
   const notes = await getNotes();
-  console.log(chalk.bgBlue("Notes list:"));
-  notes.forEach((note) => console.log(chalk.blue(note.title)));
+  const editedNotes = notes.map((note) => {
+    if (note.id === id) {
+      note.title = title;
+    }
+    return note;
+  });
+  await saveNotes(editedNotes);
+  console.log(chalk.bgYellow("Note was edited!"));
 }
 
 async function getNotes() {
@@ -27,19 +34,31 @@ async function getNotes() {
   return Array.isArray(JSON.parse(notes)) ? JSON.parse(notes) : [];
 }
 
-async function removeNoteById(id) {
+async function saveNotes(notes) {
+  await fs.writeFile(notesPath, JSON.stringify(notes));
+}
+
+async function printNotes() {
   const notes = await getNotes();
-  const newNotes = notes.filter((note) => note.id !== id);
-  await fs.writeFile(notesPath, JSON.stringify(newNotes));
-  if (JSON.stringify(notes) === JSON.stringify(newNotes)) {
-    console.log(chalk.bgRed.bold(`Note with id ${id} not deleted`));
-  } else {
-    console.log(chalk.bgGreen.bold(`Note with id ${id} deleted`));
-  }
+
+  console.log(chalk.bgBlue("Here is the list of notes:"));
+  notes.forEach((note) => {
+    console.log(chalk.bgWhite(note.id), chalk.blue(note.title));
+  });
+}
+
+async function removeNote(id) {
+  const notes = await getNotes();
+
+  const filtered = notes.filter((note) => note.id !== id);
+
+  await saveNotes(filtered);
+  console.log(chalk.red(`Note with id="${id}" has been removed.`));
 }
 
 module.exports = {
   addNote,
-  printNotes,
-  removeNoteById,
+  getNotes,
+  removeNote,
+  editNote,
 };

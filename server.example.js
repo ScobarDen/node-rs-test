@@ -6,7 +6,7 @@ const basePath = path.join(__dirname, "pages");
 
 const server = http.createServer(async (req, res) => {
   if (req.method === "GET") {
-    const content = await fs.readFile(path.join(basePath, "index.html"));
+    const content = await fs.readFile(path.join(basePath, "index.ejs"));
     res.writeHead(200, {
       "Content-Type": "text/html",
     });
